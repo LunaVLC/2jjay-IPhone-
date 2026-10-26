@@ -1,0 +1,267 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Someone's iPhone</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#111;color:white;font-family:-apple-system,BlinkMacSystemFont,"Arial",sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:18px}
+.phone{width:min(100%,380px);height:min(820px,88vh);min-height:580px;background:#050505;border:4px solid #555;border-radius:48px;padding:10px;box-shadow:0 20px 70px #000;position:relative;overflow:hidden}
+.screen{height:100%;width:100%;border-radius:36px;overflow:hidden;position:relative;background:linear-gradient(145deg,#24313b,#101218 55%,#30212b)}
+.island{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:100px;height:27px;border-radius:20px;background:#000;z-index:10}
+.status{height:45px;display:flex;justify-content:space-between;padding:13px 24px 0;font-size:12px;position:relative;z-index:2}
+.view{display:none;height:calc(100% - 45px);padding:18px 20px 28px;overflow-y:auto}
+.view.active{display:block}
+#lock{height:calc(100% - 45px);text-align:center;padding-top:38px;background:linear-gradient(#18202b66,#090a12aa)}
+.date{font-size:14px;color:#ddd;margin-top:12px}
+.clock{font-size:68px;font-weight:200;letter-spacing:-3px;margin-top:5px}
+.lockmsg{margin:40px auto 18px;font-size:14px;color:#ddd}
+.dots{font-size:22px;letter-spacing:10px;margin:18px}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:240px;margin:20px auto}
+.key{border:0;border-radius:50%;width:58px;height:58px;background:#ffffff24;color:white;font-size:22px;margin:auto}
+.key:active,.app:active{background:#ffffff50}
+.small{font-size:12px;color:#ddd}
+.error{height:18px;color:#ffaaaa;font-size:12px}
+.homewall{background:linear-gradient(160deg,#18252d,#293d42 42%,#382a38);min-height:100%}
+.welcome{padding:16px 0 24px;font-size:25px;font-weight:600}
+.widget{background:#ffffff1b;border:1px solid #ffffff17;border-radius:18px;padding:14px;margin-bottom:24px;font-size:13px}
+.apps{display:grid;grid-template-columns:repeat(3,1fr);gap:22px 12px}
+.app{border:0;background:transparent;color:white;text-align:center;font-size:11px;padding:0}
+.appicon{width:54px;height:54px;border-radius:15px;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 7px;background:#ffffff24;box-shadow:0 3px 10px #0002}
+.dock{display:flex;justify-content:space-around;background:#ffffff22;border-radius:22px;padding:12px 5px;margin-top:28px}
+.dock .appicon{margin:0}
+.back{background:none;color:white;border:0;font-size:14px;padding:0 0 20px}
+h2{font-size:24px;margin:5px 0 18px}
+.item{padding:14px 0;border-bottom:1px solid #ffffff22;font-size:14px;cursor:pointer}
+.item small{display:block;color:#ccc;margin-top:5px}
+.chatbubble{padding:11px 14px;border-radius:18px;margin:12px 0;max-width:85%;font-size:14px;line-height:1.5;background:#333}
+.chatbubble.me{background:#2777e8;margin-left:auto}
+input,textarea{width:100%;background:#ffffff18;border:1px solid #ffffff33;border-radius:12px;padding:12px;color:white;font:inherit;margin:8px 0}
+.action{background:#fff;color:#111;border:0;border-radius:18px;padding:11px 16px;font-weight:600;margin:6px 4px 6px 0}
+.secondary{background:#ffffff20;color:white}
+.photo{height:130px;border-radius:14px;background:linear-gradient(140deg,#455d64,#1d2930 55%,#9b777b);display:flex;align-items:end;padding:10px;font-size:12px;color:white}
+.gallery{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.callbuttons{display:flex;justify-content:space-around;margin-top:40px}
+.callbuttons button{border:0;border-radius:50%;width:65px;height:65px;font-size:25px;color:white}
+#toast{position:absolute;z-index:20;top:48px;left:12px;right:12px;background:#292d35f5;border:1px solid #ffffff25;padding:14px;border-radius:18px;display:none;font-size:13px;cursor:pointer;box-shadow:0 5px 20px #0008}
+#toast strong{display:block;margin-bottom:4px}
+.homebar{position:absolute;bottom:7px;left:50%;transform:translateX(-50%);height:4px;width:100px;border-radius:8px;background:#ffffffaa;z-index:15}
+@media(max-height:650px){.phone{height:94vh;min-height:0}.clock{font-size:52px}.keypad{gap:6px}.key{width:48px;height:48px}}
+</style>
+</head>
+<body>
+<div class="phone">
+ <div class="screen">
+  <div class="island"></div>
+  <div class="status"><span id="statusTime">9:41</span><span>●●●  Wi-Fi  ▰</span></div>
+  <div id="toast" onclick="openMessages()"><strong>Messages · now</strong><span id="toastText">You have a new message.</span></div>
+
+  <section id="lock" class="view active">
+   <div class="date">MONDAY, OCTOBER 26</div>
+   <div class="clock" id="clock">9:41</div>
+   <div class="lockmsg">This iPhone is locked.</div>
+   <div class="small">Enter Passcode</div>
+   <div class="dots" id="dots">○ ○ ○ ○</div>
+   <div class="error" id="error"></div>
+   <div class="keypad">
+    <button class="key" onclick="digit('1')">1</button>
+    <button class="key" onclick="digit('2')">2</button>
+    <button class="key" onclick="digit('3')">3</button>
+    <button class="key" onclick="digit('4')">4</button>
+    <button class="key" onclick="digit('5')">5</button>
+    <button class="key" onclick="digit('6')">6</button>
+    <button class="key" onclick="digit('7')">7</button>
+    <button class="key" onclick="digit('8')">8</button>
+    <button class="key" onclick="digit('9')">9</button>
+    <button class="key" onclick="clearPin()">⌫</button>
+    <button class="key" onclick="digit('0')">0</button>
+    <button class="key" onclick="unlock()">↵</button>
+   </div>
+   <div class="small">Hint: a date he never forgot.</div>
+  </section>
+
+  <section id="home" class="view homewall">
+   <div class="welcome">Good evening.</div>
+   <div class="widget" onclick="showToast('Messages','I need to tell you something.')">
+    <div style="font-size:11px;color:#ddd">NOTIFICATIONS</div>
+    <div style="margin-top:8px;font-size:15px">You have 1 unread message.</div>
+   </div>
+   <div class="apps">
+    <button class="app" onclick="showView('photos')"><span class="appicon">🌄</span>Photos</button>
+    <button class="app" onclick="openMessages()"><span class="appicon">💬</span>Messages</button>
+    <button class="app" onclick="showView('phoneapp')"><span class="appicon">📞</span>Phone</button>
+    <button class="app" onclick="showView('contacts')"><span class="appicon">👤</span>Contacts</button>
+    <button class="app" onclick="showView('notes')"><span class="appicon">📝</span>Notes</button>
+    <button class="app" onclick="showView('settings')"><span class="appicon">⚙️</span>Settings</button>
+   </div>
+   <div class="dock">
+    <button class="app" onclick="showView('phoneapp')"><span class="appicon">📞</span></button>
+    <button class="app" onclick="openMessages()"><span class="appicon">💬</span></button>
+    <button class="app" onclick="showView('photos')"><span class="appicon">🌄</span></button>
+   </div>
+  </section>
+
+  <section id="photos" class="view">
+   <button class="back" onclick="showView('home')">‹ Home</button><h2>Photos</h2>
+   <p class="small">Recents · 4 items</p>
+   <div class="gallery">
+    <div class="photo" style="background:linear-gradient(160deg,#9cb9c0,#314751 60%,#18252b)" onclick="photoDetail('The last trip','We said we would come back here.')">Last trip</div>
+    <div class="photo" style="background:linear-gradient(150deg,#b7a0a0,#65565f 55%,#24232e)" onclick="photoDetail('Unknown','Why did he keep this photo?')">IMG_2041</div>
+    <div class="photo" style="background:linear-gradient(145deg,#b8a889,#665b4a 50%,#24272b)" onclick="photoDetail('A receipt','October 14 · 11:42 PM')">A receipt</div>
+    <div class="photo" style="background:linear-gradient(140deg,#5b7271,#202c31 55%,#12151b)" onclick="photoDetail('Hidden','There is something behind this story.')">Hidden photo</div>
+   </div>
+   <div id="photoDetail" style="margin-top:18px;font-size:14px;line-height:1.6"></div>
+  </section>
+
+  <section id="messages" class="view">
+   <button class="back" onclick="showView('home')">‹ Home</button><h2>Messages</h2>
+   <div class="item" onclick="openChat('M')">M. <small>Yesterday · Are you home?</small></div>
+   <div class="item" onclick="openChat('Unknown')">Unknown Number <small>You shouldn't have kept that photo.</small></div>
+   <div id="chat" style="display:none">
+    <button class="action secondary" onclick="closeChat()">‹ Conversations</button>
+    <h3 id="chatTitle">M.</h3>
+    <div id="chatContent"></div>
+    <input id="reply" placeholder="iMessage">
+    <button class="action" onclick="sendMessage()">Send</button>
+   </div>
+  </section>
+
+  <section id="phoneapp" class="view">
+   <button class="back" onclick="showView('home')">‹ Home</button><h2>Phone</h2>
+   <div class="item" onclick="incomingCall()">Incoming call <small>M. · Today, 9:38 PM</small></div>
+   <div class="item" onclick="outgoingCall()">Outgoing call <small>Unknown · Yesterday, 11:42 PM</small></div>
+   <button class="action" onclick="incomingCall()">Simulate incoming call</button>
+  </section>
+
+  <section id="contacts" class="view">
+   <button class="back" onclick="showView('home')">‹ Home</button><h2>Contacts</h2>
+   <div class="item" onclick="showToast('M.','Last contacted today at 9:38 PM')">M. <small>Favourite</small></div>
+   <div class="item" onclick="showToast('Unknown','No contact details available.')">Unknown <small>No name saved</small></div>
+  </section>
+
+  <section id="notes" class="view">
+   <button class="back" onclick="showView('home')">‹ Home</button><h2>Notes</h2>
+   <div class="item" onclick="noteDetail()">October 14 <small>Don't answer if he calls again.</small></div>
+   <div id="noteText" style="font-size:14px;line-height:1.8;margin-top:20px"></div>
+  </section>
+
+  <section id="settings" class="view">
+   <button class="back" onclick="showView('home')">‹ Home</button><h2>Settings</h2>
+   <div class="item">Airplane Mode <small>Off</small></div>
+   <div class="item">Wi-Fi <small>Connected</small></div>
+   <div class="item">About <small>Owner: unknown</small></div>
+   <div class="item" onclick="showView('lock')">Lock this phone</div>
+  </section>
+
+  <section id="call" class="view" style="text-align:center;padding-top:80px">
+   <div style="font-size:14px;color:#ddd">iPhone Call</div>
+   <div id="caller" style="font-size:30px;margin-top:18px">M.</div>
+   <div id="callStatus" class="small" style="margin-top:10px">Incoming call…</div>
+   <div class="callbuttons">
+    <button style="background:#e04444" onclick="endCall()">✕</button>
+    <button style="background:#34b866" onclick="answerCall()">☎</button>
+   </div>
+  </section>
+
+  <div class="homebar" onclick="showView('home')"></div>
+ </div>
+</div>
+
+<script>
+let pin="";
+const PASSCODE="1026";
+let currentContact="M";
+let answered=false;
+
+function updateTime(){
+ const d=new Date();
+ document.getElementById("statusTime").textContent=d.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",hour12:false});
+}
+updateTime();
+setInterval(updateTime,15000);
+
+function digit(n){
+ if(pin.length>=4)return;
+ pin+=n;updateDots();
+ if(pin.length===4)unlock();
+}
+function updateDots(){
+ document.getElementById("dots").textContent=Array.from({length:4},(_,i)=>i<pin.length?"●":"○").join(" ");
+}
+function clearPin(){pin=pin.slice(0,-1);updateDots()}
+function unlock(){
+ if(pin===PASSCODE){
+  pin="";updateDots();document.getElementById("error").textContent="";
+  showView("home");
+ }else{
+  document.getElementById("error").textContent="Incorrect passcode. Try again.";
+  pin="";updateDots();
+ }
+}
+function showView(id){
+ document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+ document.getElementById(id).classList.add("active");
+ document.getElementById("toast").style.display="none";
+}
+function showToast(title,message){
+ document.getElementById("toast").innerHTML="<strong>"+title+" · now</strong>"+message;
+ document.getElementById("toast").style.display="block";
+}
+function openMessages(){showView("messages")}
+function openChat(name){
+ currentContact=name;
+ document.getElementById("chat").style.display="block";
+ document.getElementById("chatTitle").textContent=name;
+ document.getElementById("chatContent").innerHTML=name==="M"
+ ?'<div class="chatbubble">Are you home?</div><div class="chatbubble me">Not yet. Why?</div><div class="chatbubble">Please call me when you get this.</div>'
+ :'<div class="chatbubble">You shouldn’t have kept that photo.</div><div class="chatbubble">I know what happened that night.</div>';
+}
+function closeChat(){document.getElementById("chat").style.display="none"}
+function sendMessage(){
+ const field=document.getElementById("reply");
+ const value=field.value.trim();if(!value)return;
+ const bubble=document.createElement("div");
+ bubble.className="chatbubble me";bubble.textContent=value;
+ document.getElementById("chatContent").appendChild(bubble);
+ field.value="";
+ setTimeout(()=>{
+  const reply=document.createElement("div");reply.className="chatbubble";
+  reply.textContent=currentContact==="M"?"We need to talk. In person.":"Stop asking questions.";
+  document.getElementById("chatContent").appendChild(reply);
+ },1000);
+}
+function photoDetail(title,description){
+ document.getElementById("photoDetail").innerHTML="<strong>"+title+"</strong><br>"+description;
+}
+function noteDetail(){
+ document.getElementById("noteText").textContent="October 14, 11:42 PM. Don't answer if he calls again. If anyone asks, I was alone that night. Delete this note.";
+}
+function incomingCall(){
+ document.getElementById("caller").textContent="M.";
+ document.getElementById("callStatus").textContent="Incoming call…";
+ answered=false;showView("call");
+}
+function outgoingCall(){
+ document.getElementById("caller").textContent="Unknown";
+ document.getElementById("callStatus").textContent="Calling…";
+ answered=false;showView("call");
+ setTimeout(()=>{if(document.getElementById("call").classList.contains("active")&&!answered)document.getElementById("callStatus").textContent="No answer";},2500);
+}
+function answerCall(){
+ answered=true;
+ document.getElementById("callStatus").textContent="00:01 · Connected";
+}
+function endCall(){
+ showView("home");
+ showToast("Missed clue","Check the Messages app.");
+}
+setTimeout(()=>{
+ if(document.getElementById("lock").classList.contains("active")){
+  showToast("Messages · M.","Please call me. It's important.");
+ }
+},8000);
+</script>
+</body>
+</html>
